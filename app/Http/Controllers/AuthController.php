@@ -21,18 +21,22 @@ class AuthController extends Controller
             'password' => ['required', 'string', 'confirmed']
         ]);
 
-        $user = new User([
-            'name' => $request->name,
-            'email' => $request->email,
-            'password' => bcrypt($request->password)
-        ]);
+        try {
+            $user = new User([
+                'name' => $request->name,
+                'email' => $request->email,
+                'password' => bcrypt($request->password)
+            ]);
 
-        $user->save();
+            $user->save();
 
-        return response()->json([
-            'type' => 'register_success',
-            'message' => 'User successfully registered.'
-        ], 201);
+            return response()->json([
+                'type' => 'register_success',
+                'message' => 'User successfully registered.'
+            ], 201);
+        } catch (Exception $e) {
+            return $this->respondWithGenericError($e);
+        }
     }
 
     public function login(Request $request)
@@ -53,21 +57,7 @@ class AuthController extends Controller
         }
 
         try {
-            $user = $request->user();
-            $token = $user->createToken('authenticus'); // TODO: Should be configurable?
-
-            if ($request->remember_me)
-                $token->token->expires_at = Carbon::now()->addWeeks(1); // TODO: Should be configurable.
-
-            $token->token->save();
-
-            return response()->json([
-                'access_token' => $token->token->accessToken,
-                'token_type' => 'Bearer',
-                'expires_at' => Carbon::parse(
-                    $token->token->expires_at
-                )->toDateTimeString()
-            ]);
+            return $this->respondWithToken($this->createToken($request));
         } catch (Exception $e) {
             return $this->respondWithGenericError($e);
         }
@@ -106,7 +96,36 @@ class AuthController extends Controller
     {
         return response()->json([
             'type' => get_class($exception),
-            'message' => $exception->getMessage()
+            'message' => '???' . $exception->getMessage()
         ], 401);
+    }
+
+    private function createToken($request)
+    {
+        $user = $request->user();
+        $token = $user->createToken('authenticus'); // TODO: Should be configurable?
+
+        if ($request->remember_me)
+            $token->token->expires_at = Carbon::now()->addWeeks(1); // TODO: Should be configurable.
+
+        $token->token->save();
+
+        return $token;
+    }
+
+    private function createTokenResponse($token)
+    {
+        return [
+            'access_token' => $token->token->accessToken,
+            'token_type' => 'Bearer',
+            'expires_at' => Carbon::parse(
+                $token->token->expires_at
+            )->toDateTimeString()
+        ];
+    }
+
+    private function respondWithToken($token)
+    {
+        return response()->json($this->createTokenResponse($token));
     }
 }
