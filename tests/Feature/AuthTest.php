@@ -73,7 +73,7 @@ class AuthTest extends TestCase
         $response = $this
             ->postJson('/api/auth/login', [
                 'email' => $user->email,
-                'password' => 'password',
+                'password' => 'password', // NOTE: Is default password set by User factory.
             ])
             ->assertJsonStructure([
                 'access_token',
