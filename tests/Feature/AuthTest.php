@@ -59,7 +59,9 @@ class AuthTest extends TestCase
             ]);
 
         $this
-            ->assertNotNull($response->json()['access_token']) // FIXME: Our access tokens are currently always null.
+            ->assertNotNull($response->json()['access_token']);
+
+        $this
             ->assertDatabaseHas('users', ['name' => 'Test'])
             ->assertDatabaseHas('oauth_access_tokens', ['user_id' => 1]);
     }
