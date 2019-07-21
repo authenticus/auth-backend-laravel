@@ -126,7 +126,7 @@ class AuthController extends Controller
     private function createTokenResponse($token)
     {
         return [
-            'access_token' => $token->token->accessToken,
+            'access_token' => $token->accessToken,
             'token_type' => 'Bearer',
             'expires_at' => Carbon::parse(
                 $token->token->expires_at
