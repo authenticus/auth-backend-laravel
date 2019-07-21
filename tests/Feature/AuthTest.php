@@ -65,4 +65,27 @@ class AuthTest extends TestCase
             ->assertDatabaseHas('users', ['name' => 'Test'])
             ->assertDatabaseHas('oauth_access_tokens', ['user_id' => 1]);
     }
+
+    public function test_that_users_receive_a_token_upon_login()
+    {
+        $user = factory(\App\User::class)->create();
+
+        $response = $this
+            ->postJson('/api/auth/login', [
+                'email' => $user->email,
+                'password' => 'password',
+            ])
+            ->assertJsonStructure([
+                'access_token',
+                'expires_at',
+                'token_type'
+            ]);
+
+        $this
+            ->getJson('/api/auth/user', [
+                'Authorization' => 'Bearer ' . $response->json()['access_token']
+            ])
+            ->assertJsonStructure(['id', 'name', 'email'])
+            ->assertJsonFragment(['email' => $user->email]);
+    }
 }
