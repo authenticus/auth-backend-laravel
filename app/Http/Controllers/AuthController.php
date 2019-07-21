@@ -52,35 +52,55 @@ class AuthController extends Controller
             ], 401);
         }
 
-        $user = $request->user();
-        $token = $user->createToken('authenticus');
+        try {
+            $user = $request->user();
+            $token = $user->createToken('authenticus');
 
-        if ($request->remember_me)
-            $token->token->expires_at = Carbon::now()->addWeeks(1);
+            if ($request->remember_me)
+                $token->token->expires_at = Carbon::now()->addWeeks(1);
 
-        $token->token->save();
+            $token->token->save();
 
-        return response()->json([
-            'access_token' => $token->token->accessToken,
-            'token_type' => 'Bearer',
-            'expires_at' => Carbon::parse(
-                $token->token->expires_at
-            )->toDateTimeString()
-        ]);
+            return response()->json([
+                'access_token' => $token->token->accessToken,
+                'token_type' => 'Bearer',
+                'expires_at' => Carbon::parse(
+                    $token->token->expires_at
+                )->toDateTimeString()
+            ]);
+        } catch (Exception $e) {
+            return $this->respondWithGenericError($e);
+        }
     }
 
     public function logout(Request $request)
     {
-        $request->user()->token()->revoke();
+        try {
+            $request->user()->token()->revoke();
 
-        return response()->json([
-            'type' => 'logout_success',
-            'message' => 'User logged out.'
-        ]);
+            return response()->json([
+                'type' => 'logout_success',
+                'message' => 'User logged out.'
+            ]);
+        } catch (Exception $e) {
+            return $this->respondWithGenericError($e);
+        }
     }
 
     public function user(Request $request)
     {
-        return response()->json($request->user());
+        try {
+            return response()->json($request->user());
+        } catch (Exception $e) {
+            return $this->respondWithGenericError($e);
+        }
+    }
+
+    private function respondWithGenericError(Exception $exception)
+    {
+        return response()->json([
+            'type' => get_class($exception),
+            'message' => $exception->getMessage()
+        ], 401);
     }
 }
