@@ -37,6 +37,11 @@ class AuthTest extends TestCase
             ->assertJsonFragment(['The password confirmation does not match.']);
     }
 
+    public function test_that_login_attempts_are_validated()
+    {
+        // ...
+    }
+
     public function test_that_successful_registration_attempts_returns_valid_tokens()
     {
         $this->withoutExceptionHandling();
@@ -87,5 +92,15 @@ class AuthTest extends TestCase
             ])
             ->assertJsonStructure(['id', 'name', 'email'])
             ->assertJsonFragment(['email' => $user->email]);
+    }
+
+    public function test_that_tokens_are_revoked_upon_logout()
+    {
+        // ...
+    }
+
+    public function test_that_login_attempts_are_throttled()
+    {
+        // ...
     }
 }
