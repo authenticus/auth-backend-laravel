@@ -54,10 +54,10 @@ class AuthController extends Controller
 
         try {
             $user = $request->user();
-            $token = $user->createToken('authenticus');
+            $token = $user->createToken('authenticus'); // TODO: Should be configurable?
 
             if ($request->remember_me)
-                $token->token->expires_at = Carbon::now()->addWeeks(1);
+                $token->token->expires_at = Carbon::now()->addWeeks(1); // TODO: Should be configurable.
 
             $token->token->save();
 
@@ -90,6 +90,12 @@ class AuthController extends Controller
     public function user(Request $request)
     {
         try {
+            /*
+                TODO: Should be configurable?
+
+                Some people might want the email to be returned from
+                /api/auth/user, for example, whereas others may not.
+            */
             return response()->json($request->user());
         } catch (Exception $e) {
             return $this->respondWithGenericError($e);
