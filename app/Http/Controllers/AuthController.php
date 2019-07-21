@@ -113,10 +113,13 @@ class AuthController extends Controller
     private function createToken($request, $user = null)
     {
         $user = $user ?: $request->user();
-        $token = $user->createToken('authenticus'); // TODO: Should be configurable?
+        $token = $user->createToken(config('authenticus.authenticus_token_name'));
 
-        if ($request->remember_me)
-            $token->token->expires_at = Carbon::now()->addWeeks(1); // TODO: Should be configurable.
+        if ($request->remember_me) {
+            $token->token->expires_at = Carbon::now()->addDays(
+                config('authenticus.authenticus_token_expiration_days')
+            );
+        }
 
         $token->token->save();
 
