@@ -78,7 +78,7 @@ class AuthTest extends TestCase
         $response = $this
             ->postJson('/api/auth/login', [
                 'email' => $user->email,
-                'password' => 'password', // NOTE: Is default password set by User factory.
+                'password' => 'password' // NOTE: Is default password set by User factory.
             ])
             ->assertJsonStructure([
                 'access_token',
@@ -96,7 +96,31 @@ class AuthTest extends TestCase
 
     public function test_that_tokens_are_revoked_upon_logout()
     {
-        // ...
+        $user = factory(\App\User::class)->create();
+
+        $response = $this
+            ->postJson('/api/auth/login', [
+                'email' => $user->email,
+                'password' => 'password' // NOTE: Is default password set by User factory.
+            ])
+            ->assertJsonStructure([
+                'access_token',
+                'expires_at',
+                'token_type'
+            ]);
+
+        $this
+            ->actingAs($user)
+            ->getJson('/api/auth/logout', [
+                'Authorization' => 'Bearer ' . $response->json()['access_token']
+            ])
+            ->assertJsonFragment(['type' => 'logout_success']);
+
+        $this
+            ->assertDatabaseHas('oauth_access_tokens', [
+                'user_id' => $user->id,
+                'revoked' => true
+            ]);
     }
 
     public function test_that_login_attempts_are_throttled()
