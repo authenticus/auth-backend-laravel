@@ -30,10 +30,20 @@ class AuthController extends Controller
 
             $user->save();
 
-            return response()->json([
+            Auth::attempt($request->only(['email', 'password']));
+
+            $tokenResponse = $this->createTokenResponse(
+                $this->createToken($request, auth()->user())
+            );
+            $registerResponse = [
                 'type' => 'register_success',
                 'message' => 'User successfully registered.'
-            ], 201);
+            ];
+
+            return response()->json(
+                array_merge($tokenResponse, $registerResponse),
+                201
+            );
         } catch (Exception $e) {
             return $this->respondWithGenericError($e);
         }
@@ -100,9 +110,9 @@ class AuthController extends Controller
         ], 401);
     }
 
-    private function createToken($request)
+    private function createToken($request, $user = null)
     {
-        $user = $request->user();
+        $user = $user ?: $request->user();
         $token = $user->createToken('authenticus'); // TODO: Should be configurable?
 
         if ($request->remember_me)
